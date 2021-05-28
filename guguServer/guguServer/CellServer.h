@@ -11,6 +11,8 @@
 * 新建CheckTime方法 以及 时间戳变量 实现心跳检测、定时发送缓存消息功能
 * 储存clients的数据结构由vector改为map 将select中的FD_ISSET改为map::find 加快查找效率
 * 2021/5/6
+* 更改线程为线程类CellTask对象 方便进行退出的管理
+* 2021/5/27
 */
 #ifndef _CELL_SERVER_H_
 #define _CELL_SERVER_H_
@@ -27,17 +29,15 @@ class CellServer
 {
 public:
 	//构造 
-	CellServer(SOCKET sock = INVALID_SOCKET);
+	CellServer(int id);
 	//析构
 	virtual ~CellServer();
 	//处理事件 
 	void setEventObj(INetEvent* event);
 	//关闭socket 
 	void CloseSocket();
-	//判断是否工作中 
-	bool IsRun();
 	//查询是否有待处理消息 
-	bool OnRun();
+	bool OnRun(CellThread* thread);
 	//接收数据
 	int RecvData(ClientSocket* t_client);//处理数据 
 	//响应数据
@@ -54,25 +54,27 @@ public:
 	void CheckTime();
 
 private:
+	//id
+	int _id = -1;
+
 	//select优化
 	SOCKET _maxSock;//最大socket值 
 	fd_set _fd_read_bak;//读集合备份
 	bool _client_change;//客户端集合bool true表示发生改变 需重新统计 fd_read集合
 
+	//接收线程
+	CellThread _thread;
 	//缓冲区相关 
 	char* _Recv_buf;//接收缓冲区 
-	//socket相关 
-	SOCKET _sock;
 	//正式客户队列 
 	std::map<SOCKET, ClientSocket*> _clients;//储存客户端
 	//客户缓冲区
 	std::vector<ClientSocket*> _clientsBuf;
-	std::mutex _mutex;//锁
-	//线程 
-	std::thread* _pThread;
+	//锁
+	std::mutex _mutex;
 	//退出事件接口 
 	INetEvent* _pNetEvent;
-	//发送线程队列 
+	//发送线程类
 	CellTaskServer _taskServer;
 
 	//旧的时间戳

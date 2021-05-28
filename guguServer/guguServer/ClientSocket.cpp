@@ -2,6 +2,10 @@
 
 ClientSocket::ClientSocket(SOCKET sockfd)
 {
+	//设置id
+	static int n = 1;
+	_id = n++;
+
 	_sockfd = sockfd;
 	//缓冲区相关 
 	_Msg_Recv_buf = new char[RECV_BUFFER_SIZE * 5];
@@ -16,8 +20,18 @@ ClientSocket::ClientSocket(SOCKET sockfd)
 
 ClientSocket::~ClientSocket()
 {
+	printf("CellServer:%d ClientSocket:%d close\n", _Serverid, _id);
 	delete[] _Msg_Recv_buf;
 	delete[] _Msg_Send_buf;
+	if(INVALID_SOCKET != _sockfd)
+#ifdef _WIN32
+	//关闭socket
+	closesocket(_sockfd);
+#else
+	//关闭socket/LINUX
+	close(_sockfd);
+#endif
+	_sockfd = INVALID_SOCKET;
 }
 
 SOCKET ClientSocket::GetSockfd()

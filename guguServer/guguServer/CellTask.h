@@ -8,6 +8,8 @@
 * 移除任务基类，任务队列内容改为匿名函数
 * 通过匿名函数的方式储存要执行的任务，使任务可以更加多样化
 * 2021/5/4
+* 更改线程为线程类CellTask对象 方便进行退出的管理
+* 2021/5/27
 */
 #ifndef _CELL_Task_hpp_
 #define _CELL_Task_hpp_
@@ -16,11 +18,16 @@
 #include <mutex>
 #include <list>
 #include <functional>//mem_fn
+#include "CellThread.h"
 
 //发送线程类
 class CellTaskServer
 {
+private:
 	typedef std::function<void()> CellTask;
+
+public:
+	int _id = -1;//所属接收线程id
 
 public:
 	CellTaskServer();
@@ -29,10 +36,12 @@ public:
 	void addTask(CellTask ptask);
 	//启动服务
 	void Start();
+	//关闭
+	void Close();
 
 protected:
 	//工作函数 
-	void OnRun();
+	void OnRun(CellThread* thread);
 
 private:
 	//任务数据 
@@ -41,6 +50,8 @@ private:
 	std::list<CellTask>_tasksBuf;
 	//锁 锁数据缓冲区 
 	std::mutex _mutex;
+	//发送线程
+	CellThread _thread;
 };
 
 #endif

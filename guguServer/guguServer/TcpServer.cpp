@@ -134,8 +134,17 @@ int TcpServer::Accept()
 
 void TcpServer::CloseSocket()
 {
+	printf("TcpServer close start\n");
+	//退出连接线程
+	_thread.Close();
 	if (INVALID_SOCKET != _sock)
 	{
+		//关闭线程
+		for (auto iter = _cellServers.begin(); iter != _cellServers.end(); ++iter)
+		{
+			delete *iter;
+		}
+		_cellServers.clear();
 #ifdef _WIN32
 		//关闭socket
 		closesocket(_sock);
@@ -147,6 +156,7 @@ void TcpServer::CloseSocket()
 #endif
 		_sock = INVALID_SOCKET;
 	}
+	printf("TcpServer close end\n");
 }
 
 void TcpServer::AddClientToServer(ClientSocket* pClient)
@@ -161,8 +171,6 @@ void TcpServer::AddClientToServer(ClientSocket* pClient)
 		}
 	}
 	pMinServer->addClient(pClient);
-	//客户端数量++ 
-	OnNetJoin(pClient);
 }
 
 void TcpServer::Start(int nCellServer)
@@ -170,21 +178,27 @@ void TcpServer::Start(int nCellServer)
 	for (int n = 0; n < nCellServer; n++)
 	{
 		//线程加入容器 
-		auto ser = new CellServer(_sock);
+		auto ser = new CellServer(n+1);
 		_cellServers.push_back(ser);
 		ser->setEventObj(this);
 		ser->Start();
 	}
+	//启动连接线程
+	_thread.Start(
+		//onCreate
+			nullptr,
+		//onRun
+		[this](CellThread*)
+		{
+			OnRun(&_thread);
+		},
+		//onDestory
+			nullptr);
 }
 
-bool TcpServer::IsRun()
+void TcpServer::OnRun(CellThread* thread)
 {
-	return _sock != INVALID_SOCKET;
-}
-
-bool TcpServer::OnRun()
-{
-	if (IsRun())
+	while (thread->isRun())
 	{
 		time4msg();//查看各线程数据信息 
 		fd_set fdRead;//建立集合 这里要new一下 要不栈会超16K给warning
@@ -196,24 +210,23 @@ bool TcpServer::OnRun()
 		FD_SET(_sock, &fdRead);//放入集合 
 		//FD_SET(_sock,&fdWrite); 
 		//FD_SET(_sock,&fdExcept);
-		timeval s_t = { 0,0 };//select最大响应时间 
+		timeval s_t = { 0,1 };//select最大响应时间 
 
 		//select函数筛选select 
 		int ret = select(_sock + 1, &fdRead, 0, 0, &s_t);
 		if (ret < 0)
 		{
 			printf("select任务结束\n");
-			CloseSocket();
-			return false;
+			//工作中退出
+			thread->Exit();
+			return;
 		}
 		if (FD_ISSET(_sock, &fdRead))//获取是否有新socket连接 
 		{
 			FD_CLR(_sock, &fdRead);//清理
 			Accept();//连接 
 		}
-		return true;
 	}
-	return false;
 }
 
 void TcpServer::time4msg()

@@ -17,18 +17,19 @@
 	#include<winSock2.h>
 	#include<WS2tcpip.h>
 	#include<windows.h>
+	#include"CellThread.h"
 	#pragma comment(lib, "ws2_32.lib")//链接此动态链接库 windows特有 
 	//连接动态库 此动态库里含有 计时器类mytimer 和 cmd命令 和 心跳计时器类HBtimer
-	#include "D:\\赵浩钧\\程序项目\\guguMeet\\lib\\DynamicLib\\pch.h"
-	#pragma comment(lib, "D:\\赵浩钧\\程序项目\\guguMeet\\lib\\DynamicLib\\guguDll.lib")
+	#include "lib\\DynamicLib\\pch.h"
+	#pragma comment(lib, "lib\\DynamicLib\\guguDll.lib")
 #ifdef _DEBUG
 	//连接debug静态库 此静态库里含有一个内存池
-	#include"D:\\赵浩钧\\程序项目\\guguMeet\\debugLib\\StaticLib\\Alloctor.h"
-	#pragma comment(lib,"D:\\赵浩钧\\程序项目\\guguMeet\\debugLib\\StaticLib\\guguAlloc.lib")
+	#include"debugLib\\StaticLib\\Alloctor.h"
+	#pragma comment(lib,"debugLib\\StaticLib\\guguAlloc.lib")
 #else
 	//连接release静态库 此静态库里含有一个内存池
-	#include"D:\\赵浩钧\\程序项目\\guguMeet\\lib\\StaticLib\\Alloctor.h"
-	#pragma comment(lib,"D:\\赵浩钧\\程序项目\\guguMeet\\lib\\StaticLib\\guguAlloc.lib")
+	#include"lib\\StaticLib\\Alloctor.h"
+	#pragma comment(lib,"lib\\StaticLib\\guguAlloc.lib")
 #endif
 #else
 	#include<sys/socket.h>
@@ -55,6 +56,10 @@
 //客户端类 
 class ClientSocket
 {
+public:
+	int _id = -1;
+	int _Serverid = -1;
+
 public:
 	//构造 
 	ClientSocket(SOCKET sockfd = INVALID_SOCKET);

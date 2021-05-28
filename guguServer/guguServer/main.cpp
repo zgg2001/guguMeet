@@ -1,4 +1,5 @@
 #include"TcpServer.h"
+#include<iostream>
 class MyServer : public TcpServer
 {
 public:
@@ -78,10 +79,19 @@ int main()
 	s1->Bind(NULL, 8888);
 	s1->Listen(5);
 	s1->Start(4);
-	while (s1->IsRun())
+	while (1)
 	{
-		s1->OnRun();
+		std::string s;
+		std::cin >> s;
+		if (s == "exit")
+		{
+			s1->CloseSocket();
+		}
 	}
-	s1->CloseSocket();
+	//s1->CloseSocket();
+	while (1)
+	{
+
+	}
 	return 0;
 }

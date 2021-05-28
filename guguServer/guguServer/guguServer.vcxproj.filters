@@ -30,6 +30,12 @@
     <ClCompile Include="CellTask.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="CellSemaphore.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CellThread.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CellServer.h">
@@ -45,6 +51,12 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="TcpServer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="CellSemaphore.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="CellThread.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

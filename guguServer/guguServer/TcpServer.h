@@ -4,6 +4,8 @@
 * 通过start方法生成子线程 监控收包
 * 主线程仅进行客户端加入退出监控
 * 2021/4/22
+* 更改线程为线程类CellTask对象 方便进行退出的管理
+* 2021/5/27
 */
 #ifndef _TCP_SERVER_H_
 #define _TCP_SERVER_H_
@@ -34,10 +36,6 @@ public:
 	void AddClientToServer(ClientSocket* pClient);
 	//线程启动 
 	void Start(int nCellServer);
-	//判断是否工作中 
-	inline bool IsRun();
-	//查询是否有待处理消息 
-	bool OnRun();
 	//显示各线程数据信息 
 	void time4msg();
 	//客户端加入事件 
@@ -48,7 +46,13 @@ public:
 	virtual void OnNetMsg(CellServer* pCellServer, ClientSocket* pClient, DataHeader* pHead);
 	virtual void OnNetRecv(ClientSocket* pClient);
 
+protected:
+	//查询是否有待处理消息 
+	void OnRun(CellThread* thread);
+
 private:
+	//主线程-建立连接
+	CellThread _thread;
 	//socket相关 
 	SOCKET _sock;
 	std::vector<CellServer*> _cellServers;//线程处理 

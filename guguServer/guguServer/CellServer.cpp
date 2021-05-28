@@ -1,9 +1,9 @@
 #include"CellServer.h"
 
-CellServer::CellServer(SOCKET sock)
+CellServer::CellServer(int id)
 {
-	_sock = sock;
-	_pThread = nullptr;
+	_id = id;
+	_taskServer._id = id;//发送端id
 	_pNetEvent = nullptr;
 	//缓冲区相关 
 	_Recv_buf = new char[RECV_BUFFER_SIZE];
@@ -15,12 +15,12 @@ CellServer::CellServer(SOCKET sock)
 
 CellServer::~CellServer()
 {
-	delete[] _Recv_buf;
-	delete _pThread;
-	delete _pNetEvent;
+	printf("CellServer:%d ~CellServer start\n", _id);
 	//关闭socket 
-	CloseSocket();
-	_sock = INVALID_SOCKET;
+	CloseSocket(); 
+	//释放等
+	delete[] _Recv_buf;
+	printf("CellServer:%d ~CellServer end\n", _id);
 }
 
 void CellServer::setEventObj(INetEvent* event)
@@ -30,42 +30,29 @@ void CellServer::setEventObj(INetEvent* event)
 
 void CellServer::CloseSocket()
 {
-	if (INVALID_SOCKET != _sock)
+	printf("CellServer:%d close start\n", _id);
+	//关闭任务线程
+	_taskServer.Close();
+	//关闭接收线程
+	_thread.Close();
+	//删除客户端map记录 = 删除客户端对象 调用其析构函数close socket
+	for (auto iter = _clients.begin(); iter != _clients.end(); ++iter)
 	{
-#ifdef _WIN32
-		//关闭客户端socket
-		for (auto iter = _clients.begin(); iter != _clients.end(); ++iter)
-		{
-			closesocket(iter->first);
-			delete iter->second;
-		}
-		//关闭socket
-		closesocket(_sock);
-#else
-		//关闭客户端socket
-		for (int n = 0; n < _clients.size(); ++n)
-		{
-			close(_clients[n]->GetSockfd());
-			delete _clients[n];
-		}
-		//关闭socket/LINUX
-		close(_sock);
-#endif
-		_sock = INVALID_SOCKET;
-		//清除容器 
-		_clients.clear();
-		_clientsBuf.clear();
+		delete iter->second;
 	}
+	for (auto iter = _clientsBuf.begin(); iter != _clientsBuf.end(); ++iter)
+	{
+		delete* iter;
+	}
+	//清除容器 
+	_clients.clear();
+	_clientsBuf.clear();
+	printf("CellServer:%d close end\n", _id);
 }
 
-bool CellServer::IsRun()
+bool CellServer::OnRun(CellThread* thread)
 {
-	return _sock != INVALID_SOCKET;
-}
-
-bool CellServer::OnRun()
-{
-	while (IsRun())
+	while (thread->isRun())
 	{
 		//将缓冲队列中的客户数据加入正式队列 
 		if (!_clientsBuf.empty())
@@ -74,6 +61,9 @@ bool CellServer::OnRun()
 			for (auto client : _clientsBuf)
 			{
 				_clients[client->GetSockfd()] = client;
+				if(_pNetEvent)
+					_pNetEvent->OnNetJoin(client);//客户端数量++ 
+				client->_Serverid = _id;//所属接收线程id
 			}
 			_clientsBuf.clear();
 			_client_change = true;
@@ -116,8 +106,9 @@ bool CellServer::OnRun()
 		int ret = select(_maxSock + 1, &fdRead, 0, 0, &t);
 		if (ret < 0)
 		{
-			printf("select任务结束\n");
-			CloseSocket();
+			printf("CellServer:%d OnRun select error\n", _id);
+			//工作中退出
+			thread->Exit();
 			return false;
 		}
 		//遍历所有socket 查看是否有待处理事件 
@@ -133,7 +124,6 @@ bool CellServer::OnRun()
 					{
 						_pNetEvent->OnNetLeave(iter->second);
 					}
-					closesocket(iter->first);
 					delete iter->second;
 					_clients.erase(iter);//移除
 					_client_change = true;//客户端退出 需要通知系统重新录入fdset集合 
@@ -160,7 +150,6 @@ bool CellServer::OnRun()
 		}
 		for (auto client : ClientSocket_temp)
 		{
-			closesocket(client->GetSockfd());
 			_clients.erase(client->GetSockfd());
 			delete client;
 		}
@@ -169,6 +158,7 @@ bool CellServer::OnRun()
 		//检测事件
 		CheckTime();
 	}
+	printf("CellServer:%d OnRun() exit\n", _id);
 	return true;
 }
 
@@ -186,7 +176,6 @@ void CellServer::CheckTime()
 			{
 				_pNetEvent->OnNetLeave(iter->second);
 			}
-			closesocket(iter->second->GetSockfd());
 			delete iter->second;
 			_clients.erase(iter++);//移除
 			_client_change = true;//客户端退出 需要通知系统重新录入fdset集合 
@@ -261,9 +250,19 @@ void CellServer::addClient(ClientSocket* client)
 
 void CellServer::Start()
 {
-	//mem_fn 将成员函数转为函数对象，使用对象指针或者对象进行绑定  相比mem_fun和mem_fun_ref更加智能 
-	_pThread = new std::thread(std::mem_fn(&CellServer::OnRun), this);
-	_taskServer.Start();//启动发送线程 
+	//启动接收线程
+	_thread.Start(
+		//onCreate
+			nullptr,
+		//onRun
+		[this](CellThread*)
+		{
+			OnRun(&_thread);
+		},
+		//onDestory
+			nullptr);
+	//启动发送线程 
+	_taskServer.Start();
 }
 
 int CellServer::GetClientCount() const

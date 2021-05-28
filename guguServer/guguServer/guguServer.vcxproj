@@ -72,9 +72,15 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <ReferencePath>$(VC_ReferencesPath_x86);</ReferencePath>
+    <IncludePath>D:\\赵浩钧\\程序项目\\guguMeet;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <LibraryPath>D:\\赵浩钧\\程序项目\\guguMeet;$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
+    <ReferencePath>$(VC_ReferencesPath_x86);</ReferencePath>
+    <IncludePath>D:\\赵浩钧\\程序项目\\guguMeet;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <LibraryPath>D:\\赵浩钧\\程序项目\\guguMeet;$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -145,15 +151,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CellSemaphore.cpp" />
     <ClCompile Include="CellServer.cpp" />
     <ClCompile Include="CellTask.cpp" />
+    <ClCompile Include="CellThread.cpp" />
     <ClCompile Include="ClientSocket.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="TcpServer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CellSemaphore.h" />
     <ClInclude Include="CellServer.h" />
     <ClInclude Include="CellTask.h" />
+    <ClInclude Include="CellThread.h" />
     <ClInclude Include="ClientSocket.h" />
     <ClInclude Include="INetEvent.h" />
     <ClInclude Include="TcpServer.h" />

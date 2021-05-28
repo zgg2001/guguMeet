@@ -1,5 +1,11 @@
 d:\赵浩钧\程序项目\gugumeet\guguserver\guguserver\release\vc142.pdb
-d:\赵浩钧\程序项目\gugumeet\guguserver\guguserver\release\server.obj
+d:\赵浩钧\程序项目\gugumeet\guguserver\guguserver\release\tcpserver.obj
+d:\赵浩钧\程序项目\gugumeet\guguserver\guguserver\release\main.obj
+d:\赵浩钧\程序项目\gugumeet\guguserver\guguserver\release\clientsocket.obj
+d:\赵浩钧\程序项目\gugumeet\guguserver\guguserver\release\cellthread.obj
+d:\赵浩钧\程序项目\gugumeet\guguserver\guguserver\release\celltask.obj
+d:\赵浩钧\程序项目\gugumeet\guguserver\guguserver\release\cellserver.obj
+d:\赵浩钧\程序项目\gugumeet\guguserver\guguserver\release\cellsemaphore.obj
 d:\赵浩钧\程序项目\gugumeet\guguserver\release\guguserver.lib
 d:\赵浩钧\程序项目\gugumeet\guguserver\release\guguserver.exp
 d:\赵浩钧\程序项目\gugumeet\guguserver\release\guguserver.ipdb
